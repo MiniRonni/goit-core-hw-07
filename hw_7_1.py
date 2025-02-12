@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from collections import UserDict
 
 
-# Базовий клас для полів запису.
 class Field:
+    """Base class for record fields."""
     def __init__(self, value):
         self.value = value
 
@@ -12,16 +12,16 @@ class Field:
         return str(self.value)
 
 
-# Клас для зберігання імені контакту
 class Name(Field):
+    """Class for storing contact name"""
     def __init__(self, value):
         if not value:
             raise ValueError('Name cannot be empty.')
         super().__init__(value)
 
 
-# Клас для зберігання номера телефону.
 class Phone(Field):
+    """Class for storing phone numbers."""
     def __init__(self, value):
         if not value.isdigit() or len(value) != 10:
             raise ValueError('Phone is required')
@@ -29,6 +29,7 @@ class Phone(Field):
 
 
 class Birthday(Field):
+    """Class for storing birthday."""
     def __init__(self, value):
         try:
             self.value = datetime.strptime(value, "%d.%m.%Y").date()
@@ -36,8 +37,8 @@ class Birthday(Field):
             raise ValueError('Birthday must be in the format DD.MM.YYYY.')
 
 
-# Клас для зберігання інформації про контакт
 class Record:
+    """Class for storing contact information."""
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
@@ -76,11 +77,13 @@ class Record:
 
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phone: {'; '.join(p.value for p in self.phones)}{f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}" if self.birthday else ""}"
+        phone = '; '.join(p.value for p in self.phones)
+        birthday = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}" if self.birthday else ""
+        return f"Contact name: {self.name.value}, phone: {phone}{birthday}."
 
 
-# Клас для зберігання та управління записами.
 class AddressBook(UserDict):
+    """Class for storing and managing records."""
     def add_record(self, record):
         self.data[record.name.value] = record
 
@@ -138,7 +141,6 @@ def input_error(func):
 
 
 def parse_input(user_input):
-    """Розбирає введену команду та її аргументи."""
     cmd, *args = user_input.split()
     cmd = cmd.strip().lower()
     return cmd, *args
@@ -146,7 +148,6 @@ def parse_input(user_input):
 
 @input_error
 def add_contact(args, book: AddressBook):
-    """Додає новий контакт."""
     name, phone, *_ = args
     record = book.find(name)
     message =  "Contact update."
@@ -161,7 +162,6 @@ def add_contact(args, book: AddressBook):
 
 @input_error
 def change_contact(args, book: AddressBook):
-    """Змінює номер телефону для існуючого контакту."""
     name, old_phone, new_phone = args
     record = book.find(name)
     if record:
@@ -172,20 +172,18 @@ def change_contact(args, book: AddressBook):
 
 @input_error
 def show_phone(args, book: AddressBook):
-    """Показує номер телефону для заданого контакту."""
     name = args[0]
     record = book.find(name)
     if record:
-        return f"The phone number for {name} is {", ".join([p.value for p in record.phones])}."
+        return f"The phone number for {name} is {', '.join([p.value for p in record.phones])}."
     return "Contact not found."
 
 
 @input_error
 def show_all(book: AddressBook):
-    """Виводить всі збережені контакти та їхні номери."""
     if not book.data:
         return "No contacts saved."
-    result = "\n".join([f"{record.name.value}: {", ".join([p.value for p in record.phones])}" for record in book.values()])
+    result = "\n".join([f"{record.name.value}: {', '.join([p.value for p in record.phones])}" for record in book.values()])
     return result
 
 
